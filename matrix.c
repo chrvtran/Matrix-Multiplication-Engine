@@ -38,6 +38,7 @@ void display_matrix(int rows, int cols, int *matrix) {
 
 float do_job(int rows1, int cols1, int cols2, int forever) {
     int rows2 = cols1;
+    struct timespec t0, t1;
     int *matrix1 = malloc(rows1 * cols1 * sizeof(int));
     int *matrix2 = malloc(rows2 * cols2 * sizeof(int));
     int *result = malloc(rows1 * cols2 * sizeof(int));
@@ -46,15 +47,19 @@ float do_job(int rows1, int cols1, int cols2, int forever) {
         free(matrix1);
         free(matrix2);
         free(result);
-        return 1;
+        return -1.0f; // error, so exit
     }
 
     do {
         generate_random_matrix(rows1, cols1, matrix1);
         generate_random_matrix(rows2, cols2, matrix2);
+
+        timespec_get(&t0, TIME_UTC);  // timer start, C11 feature
         multiply_matrices(rows1, cols1, matrix1,
                           rows2, cols2, matrix2,
                           result);
+        timespec_get(&t1, TIME_UTC);  // timer stop
+
         // To STDOUT
         printf("Matrix 1:\n");
         display_matrix(rows1, cols1, matrix1);
@@ -70,5 +75,12 @@ float do_job(int rows1, int cols1, int cols2, int forever) {
     free(matrix1);
     free(matrix2);
     free(result);
-}
 
+    // nano seconds elapsed converted to fractional seconds
+    float dns = (float)(t1.tv_nsec - t0.tv_nsec) / 1000000000;
+    // seconds elapsed
+    float ds = (float)(t1.tv_sec - t0.tv_sec);
+
+    float total_time = dns+ds;
+    return total_time;
+}
