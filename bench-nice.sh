@@ -14,7 +14,7 @@ if ! [[ "$num_processes" =~ ^[1-9][0-9]*$ ]] ||
     exit 1
 fi
 
-output_dir="data/bench-multi-${num_processes}-${matrix_size}"
+output_dir="data/bench-nice-${num_processes}-${matrix_size}"
 
 echo "$(date)"
 echo "Starting ${num_processes} concurrent ${matrix_size}x${matrix_size} matrix multiplications"
@@ -25,15 +25,17 @@ pids=()
 
 for i in $(seq 1 "$num_processes")
 do
+    priority=$((RANDOM % 20))
+    
     /usr/bin/time \
         -f "CPU: %P" \
         -o "${output_dir}/mm-${i}-cpu.out" \
-        ./bench "$matrix_size" "$matrix_size" "$matrix_size" 0 \
+        nice -n "$priority" ./bench "$matrix_size" "$matrix_size" "$matrix_size" 0 \
         > "${output_dir}/mm-${i}.out" &
 
     pids+=($!)
 
-    echo "Started process ${i}"
+    echo "Started process ${i}, priority ${priority}"
 done
 
 echo "Waiting for matrix multiplications"

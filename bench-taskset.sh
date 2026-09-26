@@ -14,7 +14,7 @@ if ! [[ "$num_processes" =~ ^[1-9][0-9]*$ ]] ||
     exit 1
 fi
 
-output_dir="data/bench-multi-${num_processes}-${matrix_size}"
+output_dir="data/bench-taskset-${num_processes}-${matrix_size}"
 
 echo "$(date)"
 echo "Starting ${num_processes} concurrent ${matrix_size}x${matrix_size} matrix multiplications"
@@ -28,7 +28,7 @@ do
     /usr/bin/time \
         -f "CPU: %P" \
         -o "${output_dir}/mm-${i}-cpu.out" \
-        ./bench "$matrix_size" "$matrix_size" "$matrix_size" 0 \
+        taskset -c 0 ./bench "$matrix_size" "$matrix_size" "$matrix_size" 0 \
         > "${output_dir}/mm-${i}.out" &
 
     pids+=($!)
